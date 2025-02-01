@@ -15,3 +15,6 @@ protoc google/cloud/bigquery/v2/*.proto google/cloud/bigquery/storage/v1/*.proto
 # Fix conflict of same name from BigQuery v2 API and BigQuery Storage API
 mv "${SOURCES_ROOT}/GoogleCloudBigQuery/gRPC_generated/google/cloud/bigquery/storage/v1/table.pb.swift" \
   "${SOURCES_ROOT}/GoogleCloudBigQuery/gRPC_generated/google/cloud/bigquery/storage/v1/table-storage.pb.swift"
+
+mv "${SOURCES_ROOT}/GoogleCloudBigQuery/gRPC_generated/google/cloud/bigquery/storage/v1/table.grpc.swift" \
+  "${SOURCES_ROOT}/GoogleCloudBigQuery/gRPC_generated/google/cloud/bigquery/storage/v1/table-storage.grpc.swift"

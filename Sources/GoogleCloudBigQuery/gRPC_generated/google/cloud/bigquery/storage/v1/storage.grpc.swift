@@ -213,14 +213,14 @@ extension Google_Cloud_Bigquery_Storage_V1_BigQueryRead {
     /// > BigQuery Read API.
     /// > 
     /// > The Read API can be used to read data from BigQuery.
-    package struct Client: ClientProtocol {
-        private let client: GRPCCore.GRPCClient
+    package struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
+        private let client: GRPCCore.GRPCClient<Transport>
 
         /// Creates a new client wrapping the provided `GRPCCore.GRPCClient`.
         ///
         /// - Parameters:
         ///   - client: A `GRPCCore.GRPCClient` providing a communication channel to the service.
-        package init(wrapping client: GRPCCore.GRPCClient) {
+        package init(wrapping client: GRPCCore.GRPCClient<Transport>) {
             self.client = client
         }
 
@@ -934,14 +934,14 @@ extension Google_Cloud_Bigquery_Storage_V1_BigQueryWrite {
     /// > 
     /// > For supplementary information about the Write API, see:
     /// > https://cloud.google.com/bigquery/docs/write-api
-    package struct Client: ClientProtocol {
-        private let client: GRPCCore.GRPCClient
+    package struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
+        private let client: GRPCCore.GRPCClient<Transport>
 
         /// Creates a new client wrapping the provided `GRPCCore.GRPCClient`.
         ///
         /// - Parameters:
         ///   - client: A `GRPCCore.GRPCClient` providing a communication channel to the service.
-        package init(wrapping client: GRPCCore.GRPCClient) {
+        package init(wrapping client: GRPCCore.GRPCClient<Transport>) {
             self.client = client
         }
 

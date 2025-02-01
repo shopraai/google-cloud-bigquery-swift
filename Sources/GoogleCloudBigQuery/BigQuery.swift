@@ -3,6 +3,7 @@ import Foundation
 import GRPCCore
 import GRPCNIOTransportHTTP2Posix
 import GoogleCloudAuth
+import GoogleCloudAuthGRPC
 import GoogleCloudServiceContext
 import Logging
 import NIO
@@ -18,7 +19,10 @@ public final class BigQuery: BigQueryProtocol, Service {
   private let authorization: Authorization
   private let _httpClient = Mutex<HTTPClient?>(nil)
   private let _grpcClient = Mutex<
-    (GRPCClient, Task<Void, Error>, Google_Cloud_Bigquery_Storage_V1_BigQueryWrite.ClientProtocol)?
+    (
+      GRPCClient<HTTP2ClientTransport.Posix>, Task<Void, Error>,
+      Google_Cloud_Bigquery_Storage_V1_BigQueryWrite.ClientProtocol
+    )?
   >(nil)
 
   public enum ConfigurationError: Error {
@@ -73,7 +77,7 @@ public final class BigQuery: BigQueryProtocol, Service {
         )
         let client = Google_Cloud_Bigquery_Storage_V1_BigQueryWrite.Client(wrapping: grpcClient)
         let runTask = Task {
-          try await grpcClient.run()  // TODO: Add error handling and forward somewhere to run function?
+          try await grpcClient.runConnections()  // TODO: Add error handling and forward somewhere to run function?
         }
         $0 = (grpcClient, runTask, client)
         return client
