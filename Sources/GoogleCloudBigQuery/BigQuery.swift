@@ -69,7 +69,32 @@ public final class BigQuery: BigQueryProtocol, Service {
         let grpcClient = GRPCClient(
           transport: try .http2NIOPosix(
             target: .dns(host: "bigquerystorage.googleapis.com"),
-            transportSecurity: .tls
+            transportSecurity: .tls,
+            config: .defaults { config in
+              config.backoff = .init(
+                initial: .milliseconds(100),
+                max: .seconds(1),
+                multiplier: 1.6,
+                jitter: 0.2
+              )
+              config.connection = .init(
+                maxIdleTime: .seconds(30 * 60),
+                keepalive: .init(
+                  time: .seconds(30),
+                  timeout: .seconds(5),
+                  allowWithoutCalls: true
+                )
+              )
+            },
+            serviceConfig: .init(
+              methodConfig: [
+                .init(
+                  names: [.init(service: "")],  // Empty service means all methods
+                  waitForReady: true,
+                  timeout: .seconds(60)
+                )
+              ]
+            )
           ),
           interceptors: [
             AuthorizationClientInterceptor(authorization: authorization)
