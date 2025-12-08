@@ -31,18 +31,23 @@ public final class BigQuery: BigQueryProtocol, Service {
 
   public let projectID: String
 
-  public convenience init() async throws {
+  public convenience init(authorizationProvider: GoogleCloudAuth.Provider = DefaultProvider.shared)
+    async throws
+  {
     guard let projectID = await (ServiceContext.current ?? .topLevel).projectID else {
       throw ConfigurationError.missingProjectID
     }
-    self.init(projectID: projectID)
+    self.init(projectID: projectID, authorizationProvider: authorizationProvider)
   }
 
-  public init(projectID: String) {
+  public init(
+    projectID: String, authorizationProvider: GoogleCloudAuth.Provider = DefaultProvider.shared
+  ) {
     self.projectID = projectID
 
     self.authorization = Authorization(
       scopes: ["https://www.googleapis.com/auth/bigquery"],
+      provider: authorizationProvider,
       eventLoopGroup: .singletonMultiThreadedEventLoopGroup
     )
   }
