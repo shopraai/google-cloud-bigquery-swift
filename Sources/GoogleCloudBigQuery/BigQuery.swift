@@ -175,11 +175,12 @@ public final class BigQuery: BigQueryProtocol, Service {
   private func handle<Body: Message>(response: HTTPClientResponse) async throws -> Body {
     switch response.status {
     case .ok, .created:
-      // Upstream hard-codes 1 MB here. BigQuery's jobs.query endpoint caps
-      // responses at ~10 MB and an aggregated query can legitimately return
-      // several MB of JSON, so 1 MB is too tight. Bump to 16 MB — safely
-      // above the server-side cap while still bounding memory.
-      let body = try await response.body.collect(upTo: 16 * 1024 * 1024)  // 16 MB
+      // Upstream hard-codes 1 MB here. Walmart's per-day aggregated query
+      // responses have been observed above 16 MB for high-volume days once
+      // productCategory/productSubCategory columns were added; bumping to
+      // 64 MB gives headroom without unbounded memory growth. Each
+      // BigQueryRecordSource iteration only holds one bucket at a time.
+      let body = try await response.body.collect(upTo: 64 * 1024 * 1024)  // 64 MB
       var decodingOptions = JSONDecodingOptions()
       decodingOptions.ignoreUnknownFields = true
       decodingOptions.messageDepthLimit = 1_000
