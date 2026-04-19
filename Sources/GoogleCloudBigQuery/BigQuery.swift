@@ -175,7 +175,11 @@ public final class BigQuery: BigQueryProtocol, Service {
   private func handle<Body: Message>(response: HTTPClientResponse) async throws -> Body {
     switch response.status {
     case .ok, .created:
-      let body = try await response.body.collect(upTo: 1024 * 1024)  // 1 MB
+      // Upstream hard-codes 1 MB here. BigQuery's jobs.query endpoint caps
+      // responses at ~10 MB and an aggregated query can legitimately return
+      // several MB of JSON, so 1 MB is too tight. Bump to 16 MB — safely
+      // above the server-side cap while still bounding memory.
+      let body = try await response.body.collect(upTo: 16 * 1024 * 1024)  // 16 MB
       var decodingOptions = JSONDecodingOptions()
       decodingOptions.ignoreUnknownFields = true
       decodingOptions.messageDepthLimit = 1_000
