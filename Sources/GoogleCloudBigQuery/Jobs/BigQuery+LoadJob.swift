@@ -52,6 +52,15 @@ extension BigQuery {
                       $0.fields = schema.fields.map(Self.protoField)
                     }
                   }
+                  if let n = configuration.skipLeadingRows {
+                    $0.skipLeadingRows = .with { $0.value = Int32(n) }
+                  }
+                  if let aqn = configuration.allowQuotedNewlines {
+                    $0.allowQuotedNewlines = .with { $0.value = aqn }
+                  }
+                  if let m = configuration.maxBadRecords {
+                    $0.maxBadRecords = .with { $0.value = Int32(m) }
+                  }
                   $0.destinationTable = .with {
                     $0.projectID = self.projectID
                     $0.datasetID = destination.datasetID

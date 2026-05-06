@@ -68,6 +68,53 @@ import Testing
         #expect(config.createDisposition == .never)
         #expect(config.autodetect == true)
     }
+
+    // MARK: - CSV options
+
+    @Test func csvOptionsDefaultNil() {
+        let config = LoadJobConfiguration()
+        #expect(config.skipLeadingRows == nil)
+        #expect(config.allowQuotedNewlines == nil)
+        #expect(config.maxBadRecords == nil)
+    }
+
+    @Test func csvOptionsViaInit() {
+        let config = LoadJobConfiguration(
+            sourceFormat: .csv,
+            skipLeadingRows: 1,
+            allowQuotedNewlines: true,
+            maxBadRecords: 5
+        )
+        #expect(config.skipLeadingRows == 1)
+        #expect(config.allowQuotedNewlines == true)
+        #expect(config.maxBadRecords == 5)
+    }
+
+    @Test func csvOptionsViaSchemaInit() {
+        let schema = BigQuerySchema(fields: [.init(name: "id", type: .string)])
+        let config = LoadJobConfiguration(
+            sourceFormat: .csv,
+            schema: schema,
+            skipLeadingRows: 1,
+            allowQuotedNewlines: false,
+            maxBadRecords: 0
+        )
+        #expect(config.autodetect == false)
+        #expect(config.schema?.fields.count == 1)
+        #expect(config.skipLeadingRows == 1)
+        #expect(config.allowQuotedNewlines == false)
+        #expect(config.maxBadRecords == 0)
+    }
+
+    @Test func csvOptionsAreMutable() {
+        var config = LoadJobConfiguration()
+        config.skipLeadingRows = 2
+        config.allowQuotedNewlines = true
+        config.maxBadRecords = 10
+        #expect(config.skipLeadingRows == 2)
+        #expect(config.allowQuotedNewlines == true)
+        #expect(config.maxBadRecords == 10)
+    }
 }
 
 @Suite struct LoadDestinationTests {

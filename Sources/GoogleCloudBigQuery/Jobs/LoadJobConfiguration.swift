@@ -45,17 +45,39 @@ public struct LoadJobConfiguration: Sendable, Codable {
   /// and the destination table does not already have a schema.
   public var schema: BigQuerySchema?
 
-  /// Creates a configuration that uses BigQuery's schema autodetection.
+  /// Number of rows at the top of a CSV file that BigQuery will skip when loading.
+  /// Set to `1` for CSV files with a header row. `nil` leaves the property unspecified
+  /// (equivalent to `0` when an explicit schema is provided).
+  public var skipLeadingRows: Int?
+
+  /// Allow CSV cells to contain newline characters inside quoted strings.
+  /// `nil` leaves the property unspecified (equivalent to `false`).
+  public var allowQuotedNewlines: Bool?
+
+  /// Maximum number of bad records BigQuery will skip while loading. `nil` leaves the
+  /// property unspecified (equivalent to `0` — the load fails on the first bad record).
+  /// Only meaningful for CSV and NEWLINE_DELIMITED_JSON.
+  public var maxBadRecords: Int?
+
+  /// Creates a configuration without an explicit schema. By default `autodetect` is `false`
+  /// (matching the BigQuery REST default); set to `true` to let BigQuery infer the schema.
   public init(
     sourceFormat: SourceFormat = .csv,
     writeDisposition: WriteDisposition = .append,
-    createDisposition: CreateDisposition = .ifNeeded
+    createDisposition: CreateDisposition = .ifNeeded,
+    autodetect: Bool = false,
+    skipLeadingRows: Int? = nil,
+    allowQuotedNewlines: Bool? = nil,
+    maxBadRecords: Int? = nil
   ) {
     self.sourceFormat = sourceFormat
     self.writeDisposition = writeDisposition
     self.createDisposition = createDisposition
-    self.autodetect = true
+    self.autodetect = autodetect
     self.schema = nil
+    self.skipLeadingRows = skipLeadingRows
+    self.allowQuotedNewlines = allowQuotedNewlines
+    self.maxBadRecords = maxBadRecords
   }
 
   /// Creates a configuration with an explicit schema, disabling autodetection.
@@ -63,13 +85,19 @@ public struct LoadJobConfiguration: Sendable, Codable {
     sourceFormat: SourceFormat = .csv,
     writeDisposition: WriteDisposition = .append,
     createDisposition: CreateDisposition = .ifNeeded,
-    schema: BigQuerySchema
+    schema: BigQuerySchema,
+    skipLeadingRows: Int? = nil,
+    allowQuotedNewlines: Bool? = nil,
+    maxBadRecords: Int? = nil
   ) {
     self.sourceFormat = sourceFormat
     self.writeDisposition = writeDisposition
     self.createDisposition = createDisposition
     self.autodetect = false
     self.schema = schema
+    self.skipLeadingRows = skipLeadingRows
+    self.allowQuotedNewlines = allowQuotedNewlines
+    self.maxBadRecords = maxBadRecords
   }
 }
 
