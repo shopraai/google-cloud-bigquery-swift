@@ -117,6 +117,40 @@ struct IntegrationTests {
     }
   }
 
+  /// Verifies that submitting the same `jobID` twice is idempotent: the second
+  /// `jobs.insert` call returns the existing job's status instead of creating a duplicate.
+  /// This is the canonical Temporal+BigQuery retry pattern.
+  @Test func shouldLoadFromGCSIdempotentlyWithJobID() async throws {
+    try await withBigQuery { bigQuery in
+      let jobID = "shopra-test-\(UUID().uuidString)"
+
+      // First submission: creates the job.
+      try await bigQuery.loadJob(
+        from: ["gs://my-bucket/my-file.csv"],
+        into: LoadDestination(datasetID: "my_dataset", tableID: "my_table"),
+        configuration: LoadJobConfiguration(
+          sourceFormat: .csv,
+          writeDisposition: .truncate,
+          autodetect: true
+        ),
+        jobID: jobID
+      )
+
+      // Second submission with the same jobID: BigQuery should return the existing
+      // job's status rather than creating a duplicate. Both calls must succeed.
+      try await bigQuery.loadJob(
+        from: ["gs://my-bucket/my-file.csv"],
+        into: LoadDestination(datasetID: "my_dataset", tableID: "my_table"),
+        configuration: LoadJobConfiguration(
+          sourceFormat: .csv,
+          writeDisposition: .truncate,
+          autodetect: true
+        ),
+        jobID: jobID
+      )
+    }
+  }
+
   @Test func shouldWriteWithStorageWrite() async throws {
     try await withBigQuery { bigQuery in
 

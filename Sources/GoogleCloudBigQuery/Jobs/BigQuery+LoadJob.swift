@@ -14,6 +14,14 @@ extension BigQuery {
   ///   - destination: The target dataset and table.
   ///   - configuration: Source format, write disposition, and other load options.
   ///   - location: The geographic location in which to run the job. Defaults to the project default.
+  ///   - jobID: Optional user-supplied job ID. When provided, BigQuery uses
+  ///     `(projectID, jobID, location)` as the dedup key for `jobs.insert`: submitting the same
+  ///     `jobID` again returns the existing job's status instead of creating a duplicate. This
+  ///     is the canonical pattern for idempotent submission across retries (e.g. from a Temporal
+  ///     activity). When supplying a `jobID`, callers must also supply the same `location` on
+  ///     retry — otherwise BigQuery treats the second submission as a new job. The `jobID` is
+  ///     validated server-side: BigQuery requires `[a-zA-Z0-9_-]{1,1024}`, and invalid IDs surface
+  ///     as HTTP 400. When omitted, BigQuery generates a fresh ID per insert (legacy behavior).
   ///   - initialPollInterval: Nanoseconds to wait before the first status poll. Doubles on each
   ///     subsequent poll up to `maxPollInterval`. Defaults to 1 second.
   ///   - maxPollInterval: Maximum nanoseconds to wait between status polls. Defaults to 30 seconds.
@@ -22,6 +30,7 @@ extension BigQuery {
     into destination: LoadDestination,
     configuration: LoadJobConfiguration = LoadJobConfiguration(),
     location: String? = nil,
+    jobID: String? = nil,
     initialPollInterval: UInt64 = 1_000_000_000,
     maxPollInterval: UInt64 = 30_000_000_000,
     file: String = #fileID,
@@ -68,9 +77,10 @@ extension BigQuery {
                   }
                 }
               }
-              if let location {
+              if location != nil || jobID != nil {
                 $0.jobReference = .with {
-                  $0.location = .with { $0.value = location }
+                  if let jobID { $0.jobID = jobID }
+                  if let location { $0.location = .with { $0.value = location } }
                 }
               }
             })
