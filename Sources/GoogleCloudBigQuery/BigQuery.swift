@@ -141,6 +141,21 @@ public final class BigQuery: BigQueryProtocol, Service {
 
   func request<Body: Message>(
     method: HTTPMethod,
+    path: String
+  ) async throws -> Body {
+    let accessToken = try await authorization.accessToken()
+
+    var request = HTTPClientRequest(
+      url: "https://bigquery.googleapis.com/bigquery/v2/projects/\(projectID)" + path)
+    request.method = method
+    request.headers.add(name: "Authorization", value: "Bearer " + accessToken)
+
+    let response = try await httpClient.execute(request, timeout: .seconds(30))
+    return try await handle(response: response)
+  }
+
+  func request<Body: Message>(
+    method: HTTPMethod,
     path: String,
     body: some Message
   ) async throws -> Body {
@@ -160,7 +175,12 @@ public final class BigQuery: BigQueryProtocol, Service {
   private func handle<Body: Message>(response: HTTPClientResponse) async throws -> Body {
     switch response.status {
     case .ok, .created:
-      let body = try await response.body.collect(upTo: 1024 * 1024)  // 1 MB
+      // Upstream hard-codes 1 MB here. Walmart's per-day aggregated query
+      // responses have been observed above 16 MB for high-volume days once
+      // productCategory/productSubCategory columns were added; bumping to
+      // 64 MB gives headroom without unbounded memory growth. Each
+      // BigQueryRecordSource iteration only holds one bucket at a time.
+      let body = try await response.body.collect(upTo: 64 * 1024 * 1024)  // 64 MB
       var decodingOptions = JSONDecodingOptions()
       decodingOptions.ignoreUnknownFields = true
       decodingOptions.messageDepthLimit = 1_000
