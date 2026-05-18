@@ -165,11 +165,14 @@ extension BigQuery {
         if !ref.jobID.isEmpty {
           span.attributes["bigquery/job_id"] = ref.jobID
         }
-        if !ref.location.isEmpty {
-          span.attributes["bigquery/job_location"] = ref.location
-        }
         if !ref.projectID.isEmpty {
           span.attributes["bigquery/project_id"] = ref.projectID
+        }
+        // `location` is a Google_Protobuf_StringValue wrapper —
+        // optional in the proto, so guard with `hasLocation` and
+        // unwrap via `.value`.
+        if ref.hasLocation, !ref.location.value.isEmpty {
+          span.attributes["bigquery/job_location"] = ref.location.value
         }
       }
       if response.hasTotalBytesProcessed {
