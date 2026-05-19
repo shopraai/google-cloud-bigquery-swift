@@ -155,6 +155,34 @@ extension BigQuery {
             })
         }, file: file, function: function, line: line)
 
+      // Enrich the span with metadata returned by BigQuery so callers
+      // can correlate slow / expensive queries with the actual BQ job
+      // in the GCP console without an extra round trip. Attribute
+      // names use the existing slash style for in-package consistency
+      // with `bigquery/query` above.
+      if response.hasJobReference {
+        let ref = response.jobReference
+        if !ref.jobID.isEmpty {
+          span.attributes["bigquery/job_id"] = ref.jobID
+        }
+        if !ref.projectID.isEmpty {
+          span.attributes["bigquery/project_id"] = ref.projectID
+        }
+        // `location` is a Google_Protobuf_StringValue wrapper —
+        // optional in the proto, so guard with `hasLocation` and
+        // unwrap via `.value`.
+        if ref.hasLocation, !ref.location.value.isEmpty {
+          span.attributes["bigquery/job_location"] = ref.location.value
+        }
+      }
+      if response.hasTotalBytesProcessed {
+        span.attributes["bigquery/total_bytes_processed"] = Int(response.totalBytesProcessed.value)
+      }
+      if response.hasCacheHit {
+        span.attributes["bigquery/cache_hit"] = response.cacheHit.value
+      }
+      span.attributes["bigquery/job_complete"] = response.jobComplete.value
+
       span.addEvent("received")
 
       // Check if done
