@@ -38,7 +38,12 @@ extension BigQuery {
         return QueryResult(
           rows: rows,
           totalRows: response.totalRows.value,
-          affectedRows: response.numDmlAffectedRows.value
+          affectedRows: response.numDmlAffectedRows.value,
+          totalBytesProcessed: response.hasTotalBytesProcessed
+            ? Int64(response.totalBytesProcessed.value) : nil,
+          cacheHit: response.hasCacheHit ? response.cacheHit.value : nil,
+          jobID: (response.hasJobReference && !response.jobReference.jobID.isEmpty)
+            ? response.jobReference.jobID : nil
         )
       },
       file: file,
@@ -87,10 +92,15 @@ extension BigQuery {
     try await self.query(
       query,
       location: location,
-      map: {
+      map: { response in
         QueryResultMeta(
-          totalRows: $0.totalRows.value,
-          affectedRows: $0.numDmlAffectedRows.value
+          totalRows: response.totalRows.value,
+          affectedRows: response.numDmlAffectedRows.value,
+          totalBytesProcessed: response.hasTotalBytesProcessed
+            ? Int64(response.totalBytesProcessed.value) : nil,
+          cacheHit: response.hasCacheHit ? response.cacheHit.value : nil,
+          jobID: (response.hasJobReference && !response.jobReference.jobID.isEmpty)
+            ? response.jobReference.jobID : nil
         )
       },
       file: file,
