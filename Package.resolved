@@ -1,5 +1,5 @@
 {
-  "originHash" : "5ab94d846c5acd8420e245766f725d143c379f7c6e1c2ba281f0e0dd04a49f99",
+  "originHash" : "d61dd532f843d605b00f9811fa178b0ff217ffc8762bcd5a16cfdb9ccacd948b",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -13,10 +13,10 @@
     {
       "identity" : "google-cloud-auth-swift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/rosecoder/google-cloud-auth-swift.git",
+      "location" : "https://github.com/ShopraAI/google-cloud-auth-swift.git",
       "state" : {
         "revision" : "f2f6a7e9db12371f3c9fb3a30c805b0ddc600d9d",
-        "version" : "1.3.0"
+        "version" : "0.1.0"
       }
     },
     {
